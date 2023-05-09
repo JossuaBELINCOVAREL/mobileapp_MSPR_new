@@ -1,6 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -24,18 +26,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _productList = fetchProducts();
   }
 
-  Future<List<Product>> fetchProducts() async {
-    final response =
-    await http.get(Uri.parse('http://localhost:8000/api/products'));
-
-    if (response.statusCode == 200) {
-      Iterable jsonResponse = json.decode(response.body);
-      return jsonResponse.map((product) => Product.fromJson(product)).toList();
-    } else {
-      throw Exception('Failed to load products');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +46,36 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       title: Text(product.name),
                       subtitle: Text('Price: ${product.productDetail.price}'),
                       trailing: Text('Stock: ${product.stock}'),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(product.name),
+                              content: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('ID: ${product.id}'),
+                                  Text('Stock: ${product.stock}'),
+                                  Text('Price: ${product.productDetail.price}'),
+                                  Text(
+                                      'Description: ${product.productDetail.description}'),
+                                  Text('Color: ${product.productDetail.color}'),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
                   );
                 },
@@ -69,6 +89,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ),
       ),
     );
+  }
+}
+
+Future<List<Product>> fetchProducts({http.Client? client}) async {
+  client ??= http.Client();
+
+  final response =
+      await client.get(Uri.parse('http://localhost:8000/api/products'));
+
+  if (response.statusCode == 200) {
+    Iterable jsonResponse = json.decode(response.body);
+    return jsonResponse.map((product) => Product.fromJson(product)).toList();
+  } else {
+    throw Exception('Failed to load products');
   }
 }
 
