@@ -11,7 +11,9 @@ void main() {
 }
 
 class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({Key? key}) : super(key: key);
+  final http.Client? client;
+
+  const ProductListScreen({Key? key, this.client}) : super(key: key);
 
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
@@ -23,7 +25,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   void initState() {
     super.initState();
-    _productList = fetchProducts();
+    _productList = fetchProducts(client: widget.client);
   }
 
   @override
